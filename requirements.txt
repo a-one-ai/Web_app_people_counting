@@ -1,0 +1,11 @@
+ flask
+ pytube  
+ opencv-python
+ pandas
+ ultralytics 
+ tracker 
+ cvzone
+ os-sys
+ datetime 
+ csv
+ pyrebase

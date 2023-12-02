@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>HunterXHunter</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='Home.css') }}"
+    />
+  </head>
+  <body>
+    <details class="details">
+      <summary>More Info!</summary>
+      <p>Welcome to our website! This project allows you to:</p>
+
+      <ul>
+        <li>
+          Take live stream videos from a URL or directly from a camera feed
+        </li>
+        <li>Draw a virtual line to specify your gate</li>
+        <li>
+          Enjoy the power of AI to count the people in and out of your gate
+        </li>
+      </ul>
+
+      <p>Here's how to get started:</p>
+
+      <ol>
+        <li>Choose the port of your camera or URL</li>
+        <li>Save the name of your gate</li>
+        <li>
+          Press "Get Started" to see your live feed and draw the virtual line
+        </li>
+      </ol>
+
+      <p>
+        Experience the convenience and efficiency of our system in managing
+        people flow at your gate!
+      </p>
+    </details>
+    <div class="login-box">
+      <h2>Welcome</h2>
+      <p class="paragrgh">Count People In&Out</p>
+      <form>
+        <div id="dropdownContainer" class="dropdownContainer"></div>
+
+        <!-- <div class="user-box">
+        <input type="text" name="" required="">
+        <label>Camera Input</label>
+
+      </div> -->
+
+        <!-- <div class="user-box">
+        <input type="text" name="" required="">
+        <label>Gate Name</label>
+      </div> -->
+        <div class="user-box">
+          <input type="text" id="gateNameInput" name="" required="" />
+
+          <label>Gate Name</label>
+        </div>
+
+      <a href="{{url_for('second_page')}}">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        
+        Get Started </a>  
+          </form>
+
+      <!-- <details class = "details">
+        <summary>More Info!</summary>
+        <p>Welcome to our website
+            This Project allows you to take live stream videos from URL or Directly from a camera feed
+            , Draw virtual Line to specefy your gate 
+            and then enjoy the power of AI to count the people IN & Out of your gate.</p>
+      </details> -->
+    </div>
+    <script>
+      // Get the input element by its id
+      var gateNameInput = document.getElementById("gateNameInput");
+
+      // Get the dropdown element by its tag name
+      var dropdown = document.querySelector("select");
+
+      // Get the "Get Started" button by its tag name
+      var getStartedButton = document.querySelector("a");
+
+      // Event listener for the "Get Started" button click
+      getStartedButton.addEventListener("click", function (event) {
+        // Prevent the default behavior of the link (to avoid navigation for this example)
+        event.preventDefault();
+
+        // Retrieve the input value
+        var inputValue = gateNameInput.value;
+
+        // Retrieve the selected value from the dropdown
+        var selectedDropdownValue =
+          dropdown.options[dropdown.selectedIndex].text;
+
+        // Log both values to the console
+        console.log("Input Value:", inputValue);
+        console.log("Dropdown Value:", selectedDropdownValue);
+
+        // Create an object with the data to send
+        var dataToSend = {
+          input: inputValue,
+          dropdown: selectedDropdownValue,
+        };
+
+        // Use the Fetch API to send data to a Flask endpoint
+        fetch("http://127.0.0.1:5000", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dataToSend),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            // Handle the response from the server if needed
+            console.log("Server response:", data);
+            // Redirect to the second page after sending data (if that's your desired behavior)
+            window.location.href = "second_page";
+          })
+          .catch((error) => {
+            console.error("Error sending data to server:", error);
+          });
+      });
+    </script>
+    <script>
+      // JavaScript code to create a dropdown dynamically
+      var dropdownContainer = document.getElementById("dropdownContainer");
+
+      // Create select element
+      var dropdown = document.createElement("select");
+      // Create options and add them to the select element
+
+      var option1 = document.createElement("option");
+      option1.text = "0";
+      dropdown.add(option1);
+
+      var option2 = document.createElement("option");
+      option2.text = "1";
+      dropdown.add(option2);
+
+      var option3 = document.createElement("option");
+      option3.text = "2";
+      dropdown.add(option3);
+
+      var option4 = document.createElement("option");
+      option4.text = "3";
+      dropdown.add(option4);
+
+      var option5 = document.createElement("option");
+      option5.text = "URL";
+      dropdown.add(option5);
+      // Add the select element to the dropdown container
+      dropdownContainer.appendChild(dropdown);
+
+      // Event listener for dropdown change
+      dropdown.addEventListener("change", function () {
+        var selectedOption = dropdown.options[dropdown.selectedIndex].text;
+        if (selectedOption === "URL") {
+          var textField = document.createElement("input");
+          textField.setAttribute("type", "text");
+          textField.setAttribute("placeholder", "Enter URL");
+          dropdownContainer.appendChild(textField);
+          // Create and display a "Send URL" button
+          //   var sendButton = document.createElement("button");
+          //   sendButton.innerText = "Send URL";
+          //    sendButton.onclick = function() {
+          //        var enteredURL = document.getElementById("textInputField").value;
+          // Perform an action with the entered URL (e.g., send it to a model)
+          //        console.log("Entered URL:", enteredURL);
+          // You can replace the console.log with your logic to send the URL to the model
+          //     };
+          dropdownContainer.appendChild(sendButton);
+        } else {
+          // Clear existing text field if other options are selected
+          var existingTextField =
+            dropdownContainer.querySelector("input[type='text']");
+          if (existingTextField) {
+            existingTextField.remove();
+          }
+          var existingButton = dropdownContainer.querySelector("button");
+          if (existingButton) {
+            existingButton.remove();
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

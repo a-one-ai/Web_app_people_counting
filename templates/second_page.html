@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="stylesheet"       href="{{ url_for('static', filename='Home.css') }}"
+    >
+
+    <meta charset="UTF-8" />
+    <title>Video Stream with Line</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  </head>
+  <body>
+    <p class ="second-page-parag"> Draw Your Virtual Gate</p>
+    <img class ="image"
+      id="videoFeed"
+      src="{{ url_for('video_feed') }}"
+      width="700"
+      height="500"
+    />
+     
+    <button class = "button"
+    id="stopButton">
+    Stop Stream
+  </button>
+    <button class="button"
+    id="startButton">
+      Start Stream
+    </button>
+    <p> Click on the video to get coordinates:</p>
+    <p>Coordinates: <span id="coordinates"></span></p>
+
+    <script>
+      const video = document.getElementById("videoFeed");
+      const coordinatesSpan = document.getElementById("coordinates");
+      let stopped = true;
+
+      // Function to stop the video stream
+      function stopStream() {
+        stopped = true;
+        video.src = "";
+      }
+
+      // Function to start the video stream
+      function startStream() {
+        stopped = false;
+        const url = "{{ url_for('video_feed') }}";
+        video.src = url;
+      }
+
+      // Function to send coordinates to Flask
+      function sendCoordinates(event) {
+        const rect = video.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        coordinatesSpan.textContent = `X: ${x}, Y: ${y}`;
+
+        // Send coordinates to Flask
+        $.ajax({
+          type: "POST",
+          url: "/add_point",
+          data: { x: x, y: y },
+          success: function (response) {
+            console.log(response);
+          },
+        });
+      }
+
+      // Event listeners for stop and start buttons
+      stopButton.addEventListener("click", stopStream);
+      startButton.addEventListener("click", startStream);
+
+      // Event listener for mouse click on the video
+      video.addEventListener("click", sendCoordinates);
+    </script>
+  </body>
+</html>
