@@ -79,55 +79,88 @@
     <script>
       // Get the input element by its id
       var gateNameInput = document.getElementById("gateNameInput");
-
+  
       // Get the dropdown element by its tag name
       var dropdown = document.querySelector("select");
-
+  
       // Get the "Get Started" button by its tag name
       var getStartedButton = document.querySelector("a");
-
+  
       // Event listener for the "Get Started" button click
       getStartedButton.addEventListener("click", function (event) {
-        // Prevent the default behavior of the link (to avoid navigation for this example)
-        event.preventDefault();
-
-        // Retrieve the input value
-        var inputValue = gateNameInput.value;
-
-        // Retrieve the selected value from the dropdown
-        var selectedDropdownValue =
-          dropdown.options[dropdown.selectedIndex].text;
-
-        // Log both values to the console
-        console.log("Input Value:", inputValue);
-        console.log("Dropdown Value:", selectedDropdownValue);
-
-        // Create an object with the data to send
-        var dataToSend = {
-          input: inputValue,
-          dropdown: selectedDropdownValue,
-        };
-
-        // Use the Fetch API to send data to a Flask endpoint
-        fetch("http://127.0.0.1:5000", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(dataToSend),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            // Handle the response from the server if needed
-            console.log("Server response:", data);
-            // Redirect to the second page after sending data (if that's your desired behavior)
-            window.location.href = "second_page";
-          })
-          .catch((error) => {
-            console.error("Error sending data to server:", error);
-          });
+          // Prevent the default behavior of the link (to avoid navigation for this example)
+          event.preventDefault();
+  
+          // Retrieve the input value
+          var inputValue = gateNameInput.value;
+  
+          // Retrieve the selected value from the dropdown
+          var selectedDropdownValue =
+              dropdown.options[dropdown.selectedIndex].text;
+  
+          // If the selected value is "URL", use the value from the text field
+          if (selectedDropdownValue === "URL") {
+              var textField = dropdownContainer.querySelector("input[type='text']");
+              var enteredURL = textField ? textField.value : "";
+              console.log("Input URL:", enteredURL);
+  
+              // Create an object with the data to send
+              var dataToSend = {
+                  input: inputValue,
+                  dropdown: enteredURL,
+              };
+  
+              // Use the Fetch API to send data to a Flask endpoint
+              fetch("http://127.0.0.1:5000", {
+                  method: "POST",
+                  headers: {
+                      "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(dataToSend),
+              })
+                  .then((response) => response.json())
+                  .then((data) => {
+                      // Handle the response from the server if needed
+                      console.log("Server response:", data);
+                      // Redirect to the second page after sending data (if that's your desired behavior)
+                      window.location.href = "second_page";
+                  })
+                  .catch((error) => {
+                      console.error("Error sending data to server:", error);
+                  });
+          } else {
+              // If the selected value is not "URL", proceed as before
+              // Log both values to the console
+              console.log("Input Value:", inputValue);
+              console.log("Dropdown Value:", selectedDropdownValue);
+  
+              // Create an object with the data to send
+              var dataToSend = {
+                  input: inputValue,
+                  dropdown: selectedDropdownValue,
+              };
+  
+              // Use the Fetch API to send data to a Flask endpoint
+              fetch("http://127.0.0.1:5000", {
+                  method: "POST",
+                  headers: {
+                      "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(dataToSend),
+              })
+                  .then((response) => response.json())
+                  .then((data) => {
+                      // Handle the response from the server if needed
+                      console.log("Server response:", data);
+                      // Redirect to the second page after sending data (if that's your desired behavior)
+                      window.location.href = "second_page";
+                  })
+                  .catch((error) => {
+                      console.error("Error sending data to server:", error);
+                  });
+          }
       });
-    </script>
+  </script>
     <script>
       // JavaScript code to create a dropdown dynamically
       var dropdownContainer = document.getElementById("dropdownContainer");
