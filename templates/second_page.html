@@ -4,14 +4,20 @@
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='Home.css') }}"
+
     />
+   
 
     <meta charset="UTF-8" />
     <title>Video Stream with Line</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   </head>
   <body>
-    <p class="second-page-parag">Draw Your Virtual Gate</p>
+<p class="second-page-parag">Draw Your Virtual Gate ({{gateNameInput}})</p>
+ <script>
+      // Log the gateNameInput value to the console for debugging
+      console.log("gateNameInput:", "{{ gateNameInput }}");
+    </script>
     <img
       class="image"
       id="videoFeed"

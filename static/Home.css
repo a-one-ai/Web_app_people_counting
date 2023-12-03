@@ -364,6 +364,8 @@ button:hover {
 .second-page-parag {
   display: block;
   padding-top: 0px;
+  width:1000px;
+  
 
   /* text-align: center; */
   font-size: 40px;
@@ -399,10 +401,12 @@ button:hover {
   align-items: flex-start;
   margin-right: 10px; /* Adjust margin as needed */
 }
-
+/* 
 .button {
-  margin-bottom: 10px; /* Adjust margin as needed */
+  margin-bottom: 10px; /* Adjust margin as needed 
 }
+ */
+
 .image{
   margin-left: 50px;
   margin-right: 50px;

@@ -59,13 +59,13 @@
           <label>Gate Name</label>
         </div>
 
-      <a href="{{url_for('second_page')}}">
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        
-        Get Started </a>  
+        <a href="{{ url_for('second_page', gate_name=gateNameInput) }}">
+          <span></span>
+          <span></span>
+          <span></span>
+          <span></span>
+          Get Started
+      </a>  
           </form>
 
       <!-- <details class = "details">

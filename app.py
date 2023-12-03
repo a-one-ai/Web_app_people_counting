@@ -123,7 +123,7 @@ def draw_line(frame):
 def generate_frames(frame):
     global up, down
     video_capture = cv2.VideoCapture(camera_type)  # Change the index if your camera is not the default one
-    frame_count = 0
+    frame_count = 1
     wait = 0
 
     while True:
@@ -210,7 +210,12 @@ def receive_data():
     return jsonify({'status': 'success'})         
 @app.route('/second_page')
 def second_page():
-    return render_template('second_page.html')
+    gate_name = gait_name
+    return render_template('second_page.html', gateNameInput=gate_name)
+
+
+
+
 
 @app.route('/video_feed')
 def video_feed():
