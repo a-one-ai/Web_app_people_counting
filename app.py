@@ -51,7 +51,6 @@ down=0
 
 
 def youtube(url):
-    print(url)
     yt = YouTube(url)
     stream = yt.streams.filter(file_extension="mp4",res="720p").first()
     video_url = stream.url
@@ -62,6 +61,7 @@ def draw_line(frame):
     global point, up, down, offset, person_up, counted_id
     if len(point) > 2:  # Limit the number of points stored
         point = point[-2:] 
+        print(point)
     results = model.predict(frame)
     a = results[0].boxes.data
     px = pd.DataFrame(a).astype("float")
@@ -112,7 +112,7 @@ def draw_line(frame):
                         down = down+1
                         in_line.remove(id)
                         counted_id.append(id)
-            cv2.line(frame, (point[0][0],point[0][1]),(point[1][0],point[0][1]), 2)
+            cv2.line(frame, (point[0]),(point[1]), 5)
     cvzone.putTextRect(frame,f'Out{up}',(50,60),2,2)
     cvzone.putTextRect(frame,f'In{down}',(50,160),2,2)
     return frame
@@ -136,6 +136,9 @@ def generate_frames(frame):
         if not success:
             break
         else:
+            width = 700
+            height = 500
+            frame = cv2.resize(frame, (width, height))
             draw_line(frame)  # Draw the line and points on the frame
 
             ret, buffer = cv2.imencode('.jpg', frame)
