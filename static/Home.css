@@ -205,7 +205,6 @@ html {
     animation-delay: .75s
   }
   p{
-    padding-left: 30px ;
     color: white;
     font-size: 20px;
     width: 500px;
@@ -341,9 +340,10 @@ body {
 
 
 .button {
-  padding: 10px;
-  margin: 5px;
+   padding: 15px;
+  /* margin: 5px;  */
   font-size: 16px;
+  font-weight:bold;
   cursor: pointer;
   color: #fff;
   background-color: #03e9f4;
@@ -352,7 +352,7 @@ body {
   outline: none;
   transition: background-color 0.3s ease;
   display: block;
-  margin-bottom: 10px;
+    /* margin-bottom: 10px; */
 }
 button:hover {
 
@@ -363,7 +363,6 @@ button:hover {
 
 .second-page-parag {
   display: block;
-  padding-top: 0px;
   width:1000px;
   
 
@@ -391,23 +390,29 @@ button:hover {
     font-size: 30px;
   }
 }
-/* body {
-  display: flex;
-} */
 
-.buttons-container {
-  display: inline-block;
-  flex-direction: column;
-  align-items: flex-start;
-  margin-right: 10px; /* Adjust margin as needed */
-}
-/* 
-.button {
-  margin-bottom: 10px; /* Adjust margin as needed 
-}
- */
 
 .image{
   margin-left: 50px;
   margin-right: 50px;
+}
+
+.buttons-container button {
+  margin-bottom: 10px; /* Add margin between buttons and paragraph */
+}
+
+
+
+
+.block_img_btn {
+  display: flex;
+  flex-direction: row;
+  align-items: center; /* Vertical alignment */
+  justify-content: space-between; /* Horizontal alignment with space between elements */
+}
+
+.buttons-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Align buttons and text to the start */
 }

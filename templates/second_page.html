@@ -18,19 +18,23 @@
       // Log the gateNameInput value to the console for debugging
       console.log("gateNameInput:", "{{ gateNameInput }}");
     </script>
-    <img
-      class="image"
-      id="videoFeed"
-      src="{{ url_for('video_feed') }}"
-      width="700"
-      height="500"
-    />
-    <div class="buttons-container">
-      <button class="button" id="stopButton">Stop Stream</button>
-      <button class="button" id="startButton">Start Stream</button>
-    </div>
-    <p>Click on the video to get coordinates:</p>
+  <div class="block_img_btn">  <img
+    class="image"
+    id="videoFeed"
+    src="{{ url_for('video_feed') }}"
+    width="700"
+    height="500"
+  />
+  <div class="buttons-container">
+    <button class="button" id="stopButton">Stop Stream</button>
+    <button class="button" id="startButton">Start Stream</button>
+    <p class ="click">Click on the video to get coordinates:</p>
+    <p class = "click">Coordinates: <span id="coordinates"></span>
+  </div></div>
+    <!-- <div class="Cordinates_Container">
+      <p>Click on the video to get coordinates:</p>
     <p>Coordinates: <span id="coordinates"></span></p>
+    </div> -->
 
     <script>
       const video = document.getElementById("videoFeed");
