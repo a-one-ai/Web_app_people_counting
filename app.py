@@ -50,22 +50,6 @@ up=0
 down=0
 
 
-# Path to the directory where folders will be created
-base_directory = "counter_folder"
-save_directory = os.path.join(base_directory)
-if not os.path.exists(save_directory):
-    os.makedirs(save_directory)
-csv_file_path = 'counter.csv'  # Replace with the path to your CSV file 
-# Check if the CSV file exists, if not, create it and write the header
-if not os.path.exists(csv_file_path):
-    try: 
-        with open(csv_file_path, mode='w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow([ 'File_Name' , 'Timestamp', 'countpeopleIn','countpeopleOut'])
-        print(f"CSV file created at {csv_file_path}")
-    except Exception as e:
-        print(f"Error creating CSV file: {e}")  
-
 def youtube(url):
     print(url)
     yt = YouTube(url)
@@ -131,49 +115,58 @@ def draw_line(frame):
             cv2.line(frame, (point[0][0],point[0][1]),(point[1][0],point[0][1]), 2)
     cvzone.putTextRect(frame,f'Out{up}',(50,60),2,2)
     cvzone.putTextRect(frame,f'In{down}',(50,160),2,2)
+    return frame
 
 
 
 
-
-# Generator function to get video frames
-def generate_frames(camera_type):
-    global saved, wait
+def generate_frames(frame):
+    global up, down
     video_capture = cv2.VideoCapture(camera_type)  # Change the index if your camera is not the default one
     frame_count = 0
+    wait = 0
+
     while True:
         timestamp = datetime.now().strftime('%Y-%m-%d %H-%M-%S')
-        file_name = f"counter{frame_count}.jpg"
+        file_name = f"{gait_name} {frame_count}.jpg"
         file_path = os.path.join(save_directory, file_name)
+
         success, frame = video_capture.read()
-        saved = cv2.imwrite(file_path, frame)
+
         if not success:
             break
         else:
             draw_line(frame)  # Draw the line and points on the frame
+
             ret, buffer = cv2.imencode('.jpg', frame)
-            frame = buffer.tobytes()
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')  
-        if wait == 300000:       
-           saved = cv2.imwrite(file_path, frame)
-        if saved:
-            print(f"Frame {frame_count} saved as {file_name}")
-            with open(csv_file_path, mode='a', newline='') as file:
-                    writer = csv.writer(file)
-                    saved = cv2.imwrite(file_path, frame)
-                    writer.writerow([ file_name, timestamp, up, down]) 
+            frame_bytes = buffer.tobytes()
+
+            if wait % 600000 == 0:
+                saved = cv2.imwrite(file_path, frame)
+                if saved:
+                    print(f"Frame {frame_count} saved as {file_name}")
+                    with open(csv_file_path, mode='a', newline='') as file:
+                        writer = csv.writer(file)
+                        writer.writerow([file_name, timestamp, up, down])
+                    
                     # Upload frame image to Firebase Storage
-                    storage.child (file_path).put(file_path )
+                    storage.child(file_name).put(file_path)
+                    
                     # Write frame number and timestamp to the Realtime Database
-                    db.child("timestamps").child(f"counter{datetime.now().strftime('%Y-%m-%d %H-%M-%S')}").push({
-                                    "counter": file_name,
-                                    "Timestamp": timestamp, "countIN": up, "countOUT": down
-                                })
-            print(f"Frame {frame_count} data added to CSV")  
-        frame_count +=1    
+                    db.child("timestamps").child(f"counter{timestamp}").push({
+                        "counter": file_name,
+                        "Timestamp": timestamp, "countIN": up, "countOUT": down
+                    })
+                    
+                    print(f"Frame {frame_count} data added to CSV and Firebase")
+                
+            frame_count += 1
+            wait += 1000
+
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+
     video_capture.release()
-    
     
 @app.route('/')
 def index():
@@ -181,7 +174,7 @@ def index():
 
 @app.route('/', methods=['POST'])
 def receive_data():
-    global gait_name, camera_type
+    global gait_name, camera_type,save_directory,csv_file_path
     data = request.json
     gait_name = data['input']
     camera_type = data['dropdown']
@@ -194,9 +187,24 @@ def receive_data():
 
     # Process the received data as needed
     print('Received data from client:', data['input'],data['dropdown'])
-    # Perform any additional processing or return a response if needed
-    return jsonify({'status': 'success'})
-
+    
+    # Path to the directory where folders will be created
+    base_directory = gait_name
+    save_directory = os.path.join(base_directory)
+    if not os.path.exists(save_directory):
+        os.makedirs(save_directory)
+    csv_file_path = f'{gait_name}.csv'  # Replace with the path to your CSV file 
+    # Check if the CSV file exists, if not, create it and write the header
+    if not os.path.exists(csv_file_path):
+        try: 
+            with open(csv_file_path, mode='w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow([ 'File_Name' , 'Timestamp', 'countpeopleIn','countpeopleOut'])
+            print(f"CSV file created at {csv_file_path}")
+        except Exception as e:
+            print(f"Error creating CSV file: {e}")  
+   # Perform any additional processing or return a response if needed
+    return jsonify({'status': 'success'})         
 @app.route('/second_page')
 def second_page():
     return render_template('second_page.html')

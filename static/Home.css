@@ -303,10 +303,11 @@ html {
     color: white;
     font-size: 40px;
     font-weight: bold;
-    padding-left: 50px;
+    padding-left: 40px;
+    padding-top: 0px;
   }
   .image{
-    margin-left: 450px;
+    margin-left: 350px;
   }
 
   .button{
