@@ -1,11 +1,8 @@
- flask
- pytube  
- opencv-python
- pandas
- ultralytics 
- tracker 
- cvzone
- os-sys
- datetime 
- csv
- pyrebase
+Flask ==3.0.0
+pytube ==15.0.0 
+opencv-python ==4.8.1.78
+pandas ==2.1.3
+ultralytics ==8.0.208
+cvzone ==1.6.1  
+datetime ==5.3
+pyrebase4
