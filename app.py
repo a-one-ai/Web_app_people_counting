@@ -1,3 +1,4 @@
+import base64
 from flask_cors import CORS
 from pytube import YouTube
 from flask import Flask, render_template, Response, request, jsonify
@@ -12,6 +13,8 @@ import csv
 import pyrebase
 app = Flask(__name__)
 CORS(app) 
+
+
 #connect to firebase
 firebaseConfig = {
   "apiKey": "AIzaSyDWvrfySM8YXYa6AWvmglGfQwgeccaf7WQ",
@@ -28,7 +31,7 @@ firebase = pyrebase.initialize_app(firebaseConfig)
 storage = firebase.storage()
 db = firebase.database()
 point = []
-model = YOLO('yolov8l.pt')
+model = YOLO('yolov8s.pt')
 point = []
 person_down = []
 counted_id = []
@@ -214,6 +217,30 @@ def second_page():
     return render_template('second_page.html', gateNameInput=gate_name)
 
 
+@app.route('/third_page')                               
+def third_page():
+    gate_name = gait_name
+    return render_template('third_page.html', gateNameInput=gate_name)
+
+
+@app.route('/upload', methods=['POST', 'GET'])
+def upload():
+    global captured_image_data
+
+    if request.method == 'POST':
+        # Receive the image data from the client
+        data = request.json
+        captured_image_data = data.get('image_data')
+
+        # Perform processing on the captured image data if needed
+
+        # Send back the processed image data
+        return jsonify({'image_data': captured_image_data})
+
+    elif request.method == 'GET':
+        # Send back the previously processed image data
+        return jsonify({'image_data': captured_image_data}) 
+
 
 
 
@@ -229,6 +256,46 @@ def add_point():
     y = int(float(request.form['y']))
     point.append((x, y))
     return 'Point added successfully'
+
+
+
+
+
+
+# @app.route('/upload', methods=['POST'])
+# def upload():
+#     # Get the image data from the request
+#     data = request.json
+#     image_data = data.get('image_data', '')
+
+#     # Process the image_data as needed
+#     # For example, you can save it to a file or perform some image processing
+
+#     # For demonstration purposes, let's just print the length of the image data
+#     print('Received image data. Length:', len(image_data))
+
+#     encoded_image_data = base64.b64encode(image_data).decode('utf-8')
+
+#     return jsonify({'image_data': encoded_image_data})
+
+
+# @app.route('/get_captured_image', methods=['GET'])
+# def get_captured_image():
+#     # Read the captured image file or process the stored image data
+#     # For example, you can read an image file or use the stored image data
+#     # Adjust this logic based on how you store or process the image on the server
+
+#     # For demonstration purposes, let's assume the image data is stored in a variable
+#     # Replace this with your actual logic to retrieve or process the image data
+#     sample_image_data = open('path/to/your/image.jpg', 'rb').read()
+
+#     # Encode the image data in base64
+#     encoded_image_data = base64.b64encode(sample_image_data).decode('utf-8')
+
+#     return jsonify({'image_data': encoded_image_data})
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

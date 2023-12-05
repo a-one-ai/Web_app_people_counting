@@ -416,3 +416,10 @@ button:hover {
   flex-direction: column;
   align-items: flex-start; /* Align buttons and text to the start */
 }
+.navigation-button{
+  display: flex;
+
+  justify-content: space-between; /* Horizontal alignment with space between elements */
+
+
+}

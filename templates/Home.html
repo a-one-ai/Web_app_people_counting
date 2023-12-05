@@ -36,9 +36,7 @@
         Experience the convenience and efficiency of our system in managing
         people flow at your gate!
       </p>
-      <p>
-        **Note: Enter Your Data In English** 
-      </p>
+      <p>**Note: Enter Your Data In English**</p>
     </details>
     <div class="login-box">
       <h2>Welcome</h2>
@@ -46,131 +44,94 @@
       <form>
         <div id="dropdownContainer" class="dropdownContainer"></div>
 
-        <!-- <div class="user-box">
-        <input type="text" name="" required="">
-        <label>Camera Input</label>
-
-      </div> -->
-
-        <!-- <div class="user-box">
-        <input type="text" name="" required="">
-        <label>Gate Name</label>
-      </div> -->
         <div class="user-box">
           <input type="text" id="gateNameInput" name="" required="" />
-
           <label>Gate Name</label>
         </div>
 
-        <a href="{{ url_for('second_page', gate_name=gateNameInput) }}">
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-          Get Started
-      </a>  
-          </form>
-
-      <!-- <details class = "details">
-        <summary>More Info!</summary>
-        <p>Welcome to our website
-            This Project allows you to take live stream videos from URL or Directly from a camera feed
-            , Draw virtual Line to specefy your gate 
-            and then enjoy the power of AI to count the people IN & Out of your gate.</p>
-      </details> -->
+        <div class="navigation-button">
+          <a href="{{ url_for('second_page', gate_name=gateNameInput) }}" id="countingButton">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            Counting
+          </a>
+          <a href="{{ url_for('third_page', gate_name=gateNameInput) }}" id="crowdingButton">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            Crowding
+          </a>
+        </div>
+      </form>
     </div>
     <script>
       // Get the input element by its id
       var gateNameInput = document.getElementById("gateNameInput");
-  
+
       // Get the dropdown element by its tag name
       var dropdown = document.querySelector("select");
-  
+
       // Get the "Get Started" button by its tag name
-      var getStartedButton = document.querySelector("a");
-  
+      var countingButton = document.getElementById("countingButton");
+      var crowdingButton = document.getElementById("crowdingButton");
+
       // Event listener for the "Get Started" button click
-      getStartedButton.addEventListener("click", function (event) {
-          // Prevent the default behavior of the link (to avoid navigation for this example)
-          event.preventDefault();
-  
-          // Retrieve the input value
-          var inputValue = gateNameInput.value;
-  
-          // Retrieve the selected value from the dropdown
-          var selectedDropdownValue =
-              dropdown.options[dropdown.selectedIndex].text;
-  
-          // If the selected value is "URL", use the value from the text field
-          if (selectedDropdownValue === "URL") {
-              var textField = dropdownContainer.querySelector("input[type='text']");
-              var enteredURL = textField ? textField.value : "";
-              console.log("Input URL:", enteredURL);
-  
-              // Create an object with the data to send
-              var dataToSend = {
-                  input: inputValue,
-                  dropdown: enteredURL,
-              };
-  
-              // Use the Fetch API to send data to a Flask endpoint
-              fetch("http://127.0.0.1:5000", {
-                  method: "POST",
-                  headers: {
-                      "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify(dataToSend),
-              })
-                  .then((response) => response.json())
-                  .then((data) => {
-                      // Handle the response from the server if needed
-                      console.log("Server response:", data);
-                      // Redirect to the second page after sending data (if that's your desired behavior)
-                      window.location.href = "second_page";
-                  })
-                  .catch((error) => {
-                      console.error("Error sending data to server:", error);
-                  });
-          } else {
-              // If the selected value is not "URL", proceed as before
-              // Log both values to the console
-              console.log("Input Value:", inputValue);
-              console.log("Dropdown Value:", selectedDropdownValue);
-  
-              // Create an object with the data to send
-              var dataToSend = {
-                  input: inputValue,
-                  dropdown: selectedDropdownValue,
-              };
-  
-              // Use the Fetch API to send data to a Flask endpoint
-              fetch("http://127.0.0.1:5000", {
-                  method: "POST",
-                  headers: {
-                      "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify(dataToSend),
-              })
-                  .then((response) => response.json())
-                  .then((data) => {
-                      // Handle the response from the server if needed
-                      console.log("Server response:", data);
-                      // Redirect to the second page after sending data (if that's your desired behavior)
-                      window.location.href = "second_page";
-                  })
-                  .catch((error) => {
-                      console.error("Error sending data to server:", error);
-                  });
-          }
+      countingButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        sendData('counting');
       });
-  </script>
+
+      crowdingButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        sendData('crowding');
+      });
+
+      function sendData(mode) {
+        // Retrieve the input value
+        var inputValue = gateNameInput.value;
+
+        // Retrieve the selected value from the dropdown
+        var selectedDropdownValue =
+          dropdown.options[dropdown.selectedIndex].text;
+
+        // Create an object with the data to send
+        var dataToSend = {
+          input: inputValue,
+          dropdown: selectedDropdownValue,
+          mode: mode,
+        };
+
+        // Use the Fetch API to send data to a Flask endpoint
+        fetch("http://127.0.0.1:5000", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dataToSend),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Server response:", data);
+            if (mode === 'counting') {
+              window.location.href = "second_page";
+            } else if (mode === 'crowding') {
+              window.location.href = "third_page";
+            }
+          })
+          .catch((error) => {
+            console.error("Error sending data to server:", error);
+          });
+      }
+    </script>
     <script>
       // JavaScript code to create a dropdown dynamically
       var dropdownContainer = document.getElementById("dropdownContainer");
 
       // Create select element
       var dropdown = document.createElement("select");
-      // Create options and add them to the select element
 
       var option1 = document.createElement("option");
       option1.text = "0";
@@ -191,10 +152,9 @@
       var option5 = document.createElement("option");
       option5.text = "URL";
       dropdown.add(option5);
-      // Add the select element to the dropdown container
+
       dropdownContainer.appendChild(dropdown);
 
-      // Event listener for dropdown change
       dropdown.addEventListener("change", function () {
         var selectedOption = dropdown.options[dropdown.selectedIndex].text;
         if (selectedOption === "URL") {
@@ -202,26 +162,10 @@
           textField.setAttribute("type", "text");
           textField.setAttribute("placeholder", "Enter URL");
           dropdownContainer.appendChild(textField);
-          // Create and display a "Send URL" button
-          //   var sendButton = document.createElement("button");
-          //   sendButton.innerText = "Send URL";
-          //    sendButton.onclick = function() {
-          //        var enteredURL = document.getElementById("textInputField").value;
-          // Perform an action with the entered URL (e.g., send it to a model)
-          //        console.log("Entered URL:", enteredURL);
-          // You can replace the console.log with your logic to send the URL to the model
-          //     };
-          dropdownContainer.appendChild(sendButton);
         } else {
-          // Clear existing text field if other options are selected
-          var existingTextField =
-            dropdownContainer.querySelector("input[type='text']");
+          var existingTextField = dropdownContainer.querySelector("input[type='text']");
           if (existingTextField) {
             existingTextField.remove();
-          }
-          var existingButton = dropdownContainer.querySelector("button");
-          if (existingButton) {
-            existingButton.remove();
           }
         }
       });
