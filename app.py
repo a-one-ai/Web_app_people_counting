@@ -63,7 +63,7 @@ total = 0
 
 def youtube(url):
     yt = YouTube(url)
-    stream = yt.streams.filter(file_extension="mp4",res="720p").first()
+    stream = yt.streams.filter(file_extension="mp4").first()
     video_url = stream.url
     return  video_url
 
@@ -268,14 +268,41 @@ def upload():
 
         # Decode the NumPy array to a CV2 image
         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        
 
         # Perform processing on the captured image data if needed
         count, img = count_humans(frame)
         print(count, img)
+        
 
         # Encode the processed image to base64
         _, encoded_image_data = cv2.imencode('.jpg', img)
+        
+        current_time = datetime.now().strftime('%Y-%m-%d %H-%M-%S')
+        filename = f"{current_time}.jpg"
+
+        storage_ref = storage.child(filename)
+        firebase_path = storage_ref.put(encoded_image_data.tobytes())
+        saved = firebase_path
+
+    
+        print(f"Frame {current_time} saved as {encoded_image_data}")            
+        # Write frame number and timestamp to the Realtime Database
+        db.child("timestamps").child(f"counter{current_time}").push({
+            "image_name": filename,
+            "Timestamp": current_time, 
+            "count":count,
+            "from":gait_name
+        })
+            
         encoded_image_data = base64.b64encode(encoded_image_data).decode('utf-8')
+        
+        
+        
+        
+        
+        
+        
 
         # Send back the processed image data
         return jsonify({'image_data': encoded_image_data})
