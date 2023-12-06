@@ -264,13 +264,24 @@ def upload():
 
         # Convert the image data to a NumPy array
         nparr = np.frombuffer(image_bytes, np.uint8)
-
+        
         # Decode the NumPy array to a CV2 image
         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
         # Perform processing on the captured image data if needed
-        img  = counter(frame)
-       
+        img,county  = counter(frame,gait_name)
+        timestamp = datetime.now().strftime('%Y-%m-%d %H-%M-%S')
+        file_name = f"{gait_name}{timestamp}.jpg"
+        storage_ref = storage.child(file_name)
+        firebase_path = storage_ref.put(base64.b64decode(img))
+                   
+        # Write frame number and timestamp to the Realtime Database
+        db.child("timestamps").child(f"counter{timestamp}").push({
+            "image_name": file_name,
+            "Timestamp": timestamp, "count":county, "from":gait_name
+        })
+                    
+            
 
         # Send back the processed image data
         return jsonify({'image_data': img})
