@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>HunterXHunter</title>
+    <title>people counting</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='Home.css') }}"
@@ -28,7 +28,8 @@
         <li>Choose the port of your camera or URL</li>
         <li>Save the name of your gate</li>
         <li>
-          Press "Get Started" to see your live feed and draw the virtual line
+          Press "Counting" to see your live feed and draw the virtual line 
+          , or Press "Crowding" to capture screens from a live feed and count the people in the frame
         </li>
       </ol>
 
@@ -45,19 +46,25 @@
         <div id="dropdownContainer" class="dropdownContainer"></div>
 
         <div class="user-box">
-          <input type="text" id="gateNameInput" name="" required="" />
-          <label>Gate Name</label>
-        </div>
+          <input type="text" id="gateNameInput" name="gateNameInput" required="" />
+          <label for="gateNameInput">Gate Name</label>
+      </div>
 
         <div class="navigation-button">
-          <a href="{{ url_for('second_page', gate_name=gateNameInput) }}" id="countingButton">
+          <a
+            href="{{ url_for('second_page', gate_name=gateNameInput) }}"
+            id="countingButton"
+          >
             <span></span>
             <span></span>
             <span></span>
             <span></span>
             Counting
           </a>
-          <a href="{{ url_for('third_page', gate_name=gateNameInput) }}" id="crowdingButton">
+          <a
+            href="{{ url_for('third_page', gate_name=gateNameInput) }}"
+            id="crowdingButton"
+          >
             <span></span>
             <span></span>
             <span></span>
@@ -68,6 +75,9 @@
       </form>
     </div>
     <script>
+      // Declare dropdownContainer as a global variable
+      var dropdownContainer = document.getElementById("dropdownContainer");
+
       // Get the input element by its id
       var gateNameInput = document.getElementById("gateNameInput");
 
@@ -80,29 +90,55 @@
 
       // Event listener for the "Get Started" button click
       countingButton.addEventListener("click", function (event) {
+        console.log("countingButton is clicked");
         event.preventDefault();
-        sendData('counting');
+        sendData("counting");
       });
 
       crowdingButton.addEventListener("click", function (event) {
+        console.log("crowdingButton is clicked");
         event.preventDefault();
-        sendData('crowding');
+        sendData("crowding");
       });
 
       function sendData(mode) {
         // Retrieve the input value
         var inputValue = gateNameInput.value;
+        console.log("inputValue", inputValue);
 
         // Retrieve the selected value from the dropdown
         var selectedDropdownValue =
           dropdown.options[dropdown.selectedIndex].text;
+        var selectedDropdownValue2 =
+          dropdown.options[dropdown.selectedIndex].value;
+
+        console.log("selectedDropdownValue", selectedDropdownValue);
+        console.log("selectedDropdownValue2", selectedDropdownValue2);
 
         // Create an object with the data to send
         var dataToSend = {
           input: inputValue,
           dropdown: selectedDropdownValue,
           mode: mode,
+          
+          
         };
+
+        console.log("dataToSend", dataToSend);
+        // Check if the selected value is "URL"
+        if (selectedDropdownValue.toLowerCase() == "url") {
+          console.log(
+            "selectedDropdownValue.toLowerCase()",
+            selectedDropdownValue.toLowerCase()
+          );
+          // Retrieve the URL input value
+          var urlInput = dropdownContainer.querySelector("input[type='text']");
+          console.log("urlInput", urlInput);
+          // Include the URL in the data to send
+          dataToSend.url = urlInput.value;
+
+          console.log("dataToSend.url", dataToSend.url);
+        }
 
         // Use the Fetch API to send data to a Flask endpoint
         fetch("http://127.0.0.1:5000", {
@@ -115,9 +151,9 @@
           .then((response) => response.json())
           .then((data) => {
             console.log("Server response:", data);
-            if (mode === 'counting') {
+            if (mode == "counting") {
               window.location.href = "second_page";
-            } else if (mode === 'crowding') {
+            } else if (mode == "crowding") {
               window.location.href = "third_page";
             }
           })
@@ -157,13 +193,14 @@
 
       dropdown.addEventListener("change", function () {
         var selectedOption = dropdown.options[dropdown.selectedIndex].text;
-        if (selectedOption === "URL") {
+        if (selectedOption == "URL") {
           var textField = document.createElement("input");
           textField.setAttribute("type", "text");
           textField.setAttribute("placeholder", "Enter URL");
           dropdownContainer.appendChild(textField);
         } else {
-          var existingTextField = dropdownContainer.querySelector("input[type='text']");
+          var existingTextField =
+            dropdownContainer.querySelector("input[type='text']");
           if (existingTextField) {
             existingTextField.remove();
           }

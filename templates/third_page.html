@@ -5,18 +5,25 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='Home.css') }}" />
 </head>
 <body>
+
+
     <p class="second-page-parag">Capture To Start Counting({{gateNameInput}})</p>
-    <video id="video" width="640" height="480" autoplay></video>
+
+    <div class ="vid-container" id="container">
+        <video id="video" width="640" height="480" autoplay></video>
+        
+        <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
+        <div id="captured-image-container"></div>
+    </div>
+
     <button id="capture-btn" class="button">Capture</button>
-    <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
-    <div id="captured-image-container"></div>
 
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const captureButton = document.getElementById('capture-btn');
         const capturedImageContainer = document.getElementById('captured-image-container');
-
+    
         // Access the user's camera
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => {
@@ -25,48 +32,62 @@
             .catch(error => {
                 console.error('Error accessing the camera:', error);
             });
+    
+// Function to send and receive captured image data to/from Flask
+function sendAndReceiveImage() {
+    const context = canvas.getContext('2d');
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // Function to send and receive captured image data to/from Flask
-        function sendAndReceiveImage() {
-            const context = canvas.getContext('2d');
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // Convert the captured image to base64
+    const imageData = canvas.toDataURL('image/jpeg');
 
-            // Convert the captured image to base64
-            const imageData = canvas.toDataURL('image/jpeg');
-
-            // Send the image data to the Flask backend
-            fetch('/upload', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ image_data: imageData }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Get the received image data from the response
-                const receivedImageData = data.image_data;
-
-                // Create an img element and set its src attribute
-                const imgElement = document.createElement('img');
-                imgElement.src = receivedImageData;
-
-                // Append the img element to the captured image container
-                capturedImageContainer.innerHTML = '';
-                capturedImageContainer.appendChild(imgElement);
-            })
-            .catch(error => {
-                console.error('Error sending or receiving image:', error);
-
-                // Display an error message or update the HTML as needed
-                capturedImageContainer.innerHTML = '<p>Error sending or receiving image</p>';
-            });
+    // Send the image data to the Flask backend
+    fetch('/upload', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ image_data: imageData }),
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
+        return response.json();
+    })
+    .then(data => {
+        // Get the received image data from the response
+        const receivedImageData = data.image_data;
+
+        // Validate and decode the base64 data
+        const decodedImageData = atob(receivedImageData);
+        
+        // Create an Image element
+        const imgElement = new Image();
+
+        // Create a Blob from the decoded base64 data
+        const blob = new Blob([new Uint8Array(decodedImageData.split('').map(char => char.charCodeAt(0)))], { type: 'image/jpeg' });
+
+        // Set the source of the Image element using Blob URL
+        imgElement.src = URL.createObjectURL(blob);
+
+        // Append the img element to the captured image container
+        capturedImageContainer.innerHTML = '';
+        capturedImageContainer.appendChild(imgElement);
+    })
+    .catch(error => {
+        console.error('Error sending or receiving image:', error);
+
+        // Display an error message or update the HTML as needed
+        capturedImageContainer.innerHTML = `<p>Error sending or receiving image: ${error.message}</p>`;
+    });
+}
 
         // Capture the image and send/receive it when the button is clicked
         captureButton.addEventListener('click', () => {
             sendAndReceiveImage();
         });
     </script>
+    
 </body>
 </html>
