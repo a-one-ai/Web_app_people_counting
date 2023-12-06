@@ -4,6 +4,7 @@ from pytube import YouTube
 from flask import Flask, render_template, Response, request, jsonify
 import cv2
 import pandas as pd
+import streamlink
 from ultralytics import YOLO
 from tracker import Tracker
 import cvzone
@@ -11,6 +12,10 @@ import os
 from datetime import datetime 
 import csv
 import pyrebase
+from crowd_frames import count_humans
+import numpy as np
+
+
 app = Flask(__name__)
 CORS(app) 
 
@@ -51,6 +56,9 @@ class_list = data.split("\n")
 offset = 6
 up=0
 down=0
+total = 0
+
+
 
 
 def youtube(url):
@@ -58,6 +66,20 @@ def youtube(url):
     stream = yt.streams.filter(file_extension="mp4",res="720p").first()
     video_url = stream.url
     return  video_url
+
+
+
+
+def stream(url):
+    streams = streamlink.streams(url)
+    print("url: ", url)
+    if streams:
+        print("streams: ", streams) 
+        best_stream = streams["best"]
+        print("best_stream.url: ", best_stream.url) 
+        return best_stream.url
+    else:
+        return None
 
 # Function to draw a line on the video frame
 def draw_line(frame):
@@ -115,9 +137,13 @@ def draw_line(frame):
                         down = down+1
                         in_line.remove(id)
                         counted_id.append(id)
-            cv2.line(frame, (point[0]),(point[1]), 5)
+            cv2.line(frame, (point[0]),(point[1]), 100,4)
     cvzone.putTextRect(frame,f'Out{up}',(50,60),2,2)
-    cvzone.putTextRect(frame,f'In{down}',(50,160),2,2)
+    cvzone.putTextRect(frame,f'In{down}',(50,130),2,2)
+    
+    total = up+down
+    cvzone.putTextRect(frame,f'Total{total}',(50,200),2,2)
+
     return frame
 
 
@@ -131,8 +157,11 @@ def generate_frames(frame):
 
     while True:
         timestamp = datetime.now().strftime('%Y-%m-%d %H-%M-%S')
-        file_name = f"{gait_name} {frame_count}.jpg"
-        file_path = os.path.join(save_directory, file_name)
+        file_name = f"{gait_name}{frame_count}.jpg"
+        # _, encoded_frame = cv2.imencode('.jpg', frame)
+        # frame_bytes = encoded_frame.tobytes()
+        
+       
 
         success, frame = video_capture.read()
 
@@ -143,28 +172,28 @@ def generate_frames(frame):
             height = 500
             frame = cv2.resize(frame, (width, height))
             draw_line(frame)  # Draw the line and points on the frame
+            _, encoded_frame = cv2.imencode('.jpg', frame)
+            frame_bytes = encoded_frame.tobytes()
+        
 
-            ret, buffer = cv2.imencode('.jpg', frame)
-            frame_bytes = buffer.tobytes()
+          
 
-            if wait % 600000 == 0:
-                saved = cv2.imwrite(file_path, frame)
+            if wait %  600000== 0:         
+                
+                # Upload the frame to Firebase Storage
+                storage_ref = storage.child(file_name)
+                firebase_path = storage_ref.put(frame_bytes)
+                saved = firebase_path
+                
                 if saved:
-                    print(f"Frame {frame_count} saved as {file_name}")
-                    with open(csv_file_path, mode='a', newline='') as file:
-                        writer = csv.writer(file)
-                        writer.writerow([file_name, timestamp, up, down])
-                    
-                    # Upload frame image to Firebase Storage
-                    storage.child(file_name).put(file_path)
-                    
+                    print(f"Frame {frame_count} saved as {file_name}")            
                     # Write frame number and timestamp to the Realtime Database
                     db.child("timestamps").child(f"counter{timestamp}").push({
                         "counter": file_name,
                         "Timestamp": timestamp, "countIN": up, "countOUT": down
                     })
                     
-                    print(f"Frame {frame_count} data added to CSV and Firebase")
+                    print(f"Frame {frame_count} data added to Firebase")
                 
             frame_count += 1
             wait += 1000
@@ -180,35 +209,34 @@ def index():
 
 @app.route('/', methods=['POST'])
 def receive_data():
-    global gait_name, camera_type,save_directory,csv_file_path
+    global gait_name, camera_type     
     data = request.json
+    print(data)
     gait_name = data['input']
-    camera_type = data['dropdown']
-    try:
+    if data['dropdown'] == 'URL':
+        
+        camera_type = data['url']
+        try :
+            camera_type = stream(camera_type)
+            print("the url", camera_type)
+        except :
+            camera_type = youtube(camera_type)
+            print("the url", camera_type)                
+    else:
+        camera_type = data['dropdown']
         camera_type = int(camera_type)
-        print("my camera", camera_type)
-    except:
-        camera_type = youtube(camera_type)
-        print("the url", camera_type)
+    print(data)
+    # print(data['url'])
+    print(data['dropdown'])
+    print("----------------------------------------------------------")
+    print(data)
+    # print(data['url'])
+    print(data['dropdown'])
+    print("----------------------------------------------------------")
+
 
     # Process the received data as needed
     print('Received data from client:', data['input'],data['dropdown'])
-    
-    # Path to the directory where folders will be created
-    base_directory = gait_name
-    save_directory = os.path.join(base_directory)
-    if not os.path.exists(save_directory):
-        os.makedirs(save_directory)
-    csv_file_path = f'{gait_name}.csv'  # Replace with the path to your CSV file 
-    # Check if the CSV file exists, if not, create it and write the header
-    if not os.path.exists(csv_file_path):
-        try: 
-            with open(csv_file_path, mode='w', newline='') as file:
-                writer = csv.writer(file)
-                writer.writerow([ 'File_Name' , 'Timestamp', 'countpeopleIn','countpeopleOut'])
-            print(f"CSV file created at {csv_file_path}")
-        except Exception as e:
-            print(f"Error creating CSV file: {e}")  
    # Perform any additional processing or return a response if needed
     return jsonify({'status': 'success'})         
 @app.route('/second_page')
@@ -225,22 +253,42 @@ def third_page():
 
 @app.route('/upload', methods=['POST', 'GET'])
 def upload():
-    global captured_image_data
+    try:
+        global captured_image_data
 
-    if request.method == 'POST':
         # Receive the image data from the client
         data = request.json
         captured_image_data = data.get('image_data')
 
+        # Decode the base64-encoded image data
+        image_bytes = base64.b64decode(captured_image_data.split(',')[1])
+
+        # Convert the image data to a NumPy array
+        nparr = np.frombuffer(image_bytes, np.uint8)
+
+        # Decode the NumPy array to a CV2 image
+        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
         # Perform processing on the captured image data if needed
+        count, img = count_humans(frame)
+        print(count, img)
+
+        # Encode the processed image to base64
+        _, encoded_image_data = cv2.imencode('.jpg', img)
+        encoded_image_data = base64.b64encode(encoded_image_data).decode('utf-8')
 
         # Send back the processed image data
-        return jsonify({'image_data': captured_image_data})
+        return jsonify({'image_data': encoded_image_data})
 
-    elif request.method == 'GET':
-        # Send back the previously processed image data
-        return jsonify({'image_data': captured_image_data}) 
+    except Exception as e:
+        error_message = f"Error processing image: {e}"
+        print(error_message)
 
+        # Log the error to a file or your preferred logging mechanism
+        with open('error_log.txt', 'a') as log_file:
+            log_file.write(f"{datetime.now()}: {error_message}\n")
+
+        return jsonify({'error': f"Internal server error: {e}"}), 500
 
 
 

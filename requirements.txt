@@ -7,3 +7,16 @@ cvzone ==1.6.1
 datetime ==5.3
 pyrebase4
 flask-cors
+streamlink
+pyopenssl --upgrade
+
+
+
+
+
+
+
+
+
+
+

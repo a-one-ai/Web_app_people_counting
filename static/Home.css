@@ -423,3 +423,9 @@ button:hover {
 
 
 }
+.vid-container{
+  display: flex;
+
+
+  justify-content: space-around;
+}
