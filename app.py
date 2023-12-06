@@ -201,8 +201,8 @@ def generate_frames(frame):
                     print(f"Frame {frame_count} saved as {file_name}")            
                     # Write frame number and timestamp to the Realtime Database
                     db.child("timestamps").child(f"counter{timestamp}").push({
-                        "counter": file_name,
-                        "Timestamp": timestamp, "countIN": up, "countOUT": down
+                        "image_name": file_name,
+                        "Timestamp": timestamp, "countIN": up, "countOUT": down, "count":total,"from":gait_name
                     })
                     
                     print(f"Frame {frame_count} data added to Firebase")
